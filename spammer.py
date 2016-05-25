@@ -35,15 +35,14 @@ def sendRequest(seed, command, callback):
         elapsedTime = (time.time() - startTime)
 
         returnValue = url.read()
-        print "SendRequest %s" % seed
         callback(seed, json.loads(returnValue), elapsedTime)
 
     except Exception:
         print "Could not send request to Node"
 
 def genAddress(seed):
+    print "Generating new address!"
     command = "{'command': 'generateNewAddress', 'seed': '" + seed + "', 'securityLevel': 1, 'minWeightMagnitude': 13}"
-    print command
     sendRequest(seed, command, genAddressCallback)
 
 def genAddressCallback(seed, returnValue, elapsedTime):
@@ -56,11 +55,10 @@ def main():
     #
 
     try:
-        numcpus = multiprocessing.cpu_count() -1
+        numcpus = multiprocessing.cpu_count()
 
         for i in range(0, numcpus):
             seed = genSeed()
-            print seed
             processes.append(multiprocessing.Process(target=genAddress, args=(seed,)))
             processes[-1].start()
             print "Spawned Process: %d\n" % (len(processes))
