@@ -49,6 +49,11 @@ def genAddressCallback(seed, returnValue, elapsedTime):
     print "Generated new address %s in %d seconds\n" % (returnValue['address'], elapsedTime)
     genAddress(seed)
 
+def genTx(seed):
+    print "Generating new transaction!"
+    command = "{'command': 'transfer', 'seed': '" + seed + "', 'securityLevel': 1, 'address': '" + address + "', 'value': '1', 'message': '', 'minWeightMagnitude': 13}"
+    sendRequest(seed, command, genTxCallback)
+
 def main():
     #
     # Get the number of cores and launch a spammer on each
