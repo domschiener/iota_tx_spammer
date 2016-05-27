@@ -5,6 +5,7 @@ import time
 import random
 import json
 import urllib2
+import os
 
 processes = []
 address = "9WHJOPSYWVAMRZVKHPYLSYITDFHXMWOZGULM9NCNCUEDIPMEZIVMSSDVOLYVUEPDIBDTAVMQPBBYEQBUP"
@@ -16,18 +17,20 @@ def cleanup(a, b):
 
 def writeToFile(process, value):
     try:
-        fileName = process + ".txt"
-        f.open(fileName, 'a+')
-        f.write(value)
+        fileName = "./" + process + ".txt"
+        f = open(fileName, 'a+')
+        f.write(json.dumps(value))
         f.write('\n')
         f.close()
 
-        return true
+        return True
 
-    except Exception:
+    except Exception as inst:
+        print type(inst)
+        print inst
         print "Could not write to file %s" % (process)
 
-        return false
+        return False
 
 def genSeed():
     #
