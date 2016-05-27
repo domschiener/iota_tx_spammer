@@ -1,6 +1,5 @@
 import sys
 import signal
-import os
 import multiprocessing
 import time
 import random
@@ -8,12 +7,27 @@ import json
 import urllib2
 
 processes = []
-address = "ANEROPGWWGGKZTHOTNBZVFZYQGWHHSOYLGQJKARMKCJCIZNAOKMKXYMUGAETM9FTUHHCIYKBEGTXFVJHO"
+address = "9WHJOPSYWVAMRZVKHPYLSYITDFHXMWOZGULM9NCNCUEDIPMEZIVMSSDVOLYVUEPDIBDTAVMQPBBYEQBUP"
 
 def cleanup(a, b):
     print "Cleaning up all processes ..."
     for p in processes:
-        os.kill(p.pid, signal.SIGQUIT)
+        p.terminate()
+
+def writeToFile(process, value):
+    try:
+        fileName = process + ".txt"
+        f.open(fileName, 'a+')
+        f.write(value)
+        f.write('\n')
+        f.close()
+
+        return true
+
+    except Exception:
+        print "Could not write to file %s" % (process)
+
+        return false
 
 def genSeed():
     #
@@ -50,6 +64,7 @@ def genAddressCallback(seed, numTx, returnValue, elapsedTime):
     numTx += 1
     currProcess = multiprocessing.current_process().name
     print "%s total Tx count: %d\n" % (currProcess, numTx)
+    writeToFile(currProcess, elapsedTime)
     genAddress(seed, numTx)
 
 def genTx(seed, numTx):
@@ -61,6 +76,26 @@ def genTxCallback(seed, numTx, returnValue, elapsedTime):
     numTx += 1
     currProcess = multiprocessing.current_process().name
     print "%s total Tx count: %d\n" % (currProcess, numTx)
+    writeToFile(currProcess, elapsedTime)
+
+    while True:
+        command = "{'command': 'getTransfers', 'seed': '" + seed + "', 'securityLevel': 1}"
+        request = urllib2.Request(url="http://localhost:999", data=command)
+        data = urllib2.urlopen(request).read()
+        data = json.loads(data)
+
+        notConfirmed = False
+        for i in range(0, data['transactions']):
+            if (data['transactions'][i]['persistence'] == 0):
+                notConfirmed = True
+                break
+
+
+        if notConfirmed is False:
+            break
+        print "Not confirmed yet"
+        time.sleep(10)
+    print "Tx Confirmed"
     genTx(seed, numTx)
 
 def main(argv):
@@ -83,7 +118,7 @@ def main(argv):
                 processes[-1].start()
                 print "Spawned Process: %d\n" % (len(processes))
         else:
-            if (len(seeds) != numcpus):
+            if (len(seeds) < numcpus):
                 print "Not enough seeds. Seed count should equal your CPU count"
                 return
 
